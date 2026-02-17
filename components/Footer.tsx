@@ -12,11 +12,11 @@ export default function Footer() {
           {/* Logo & About */}
           <div className="lg:col-span-1">
             <Image 
-              src="/logo-full.png" 
+              src="/logo-footer.png" 
               alt="Losawa" 
-              width={150} 
-              height={50} 
-              className="h-12 w-auto mb-4 brightness-0 invert"
+              width={236} 
+              height={133} 
+              className="h-16 md:h-20 w-auto mb-4 brightness-0 invert"
             />
             <p className="text-gray-400 text-sm leading-relaxed">
               Exquisite handcrafted jewelry inspired by timeless elegance. 

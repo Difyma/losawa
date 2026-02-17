@@ -28,10 +28,10 @@ export default function Header({ cartCount }: HeaderProps) {
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <Image 
-              src="/logo-icon.png" 
+              src="/logo-header.png" 
               alt="Losawa" 
-              width={40} 
-              height={40} 
+              width={153} 
+              height={47} 
               className="h-10 w-auto md:h-12"
               priority
             />
