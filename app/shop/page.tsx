@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight, Plus, SlidersHorizontal, X } from 'lucide-react'
@@ -25,7 +25,7 @@ const formatPrice = (price: number) =>
     minimumFractionDigits: 0,
   }).format(price)
 
-export default function ShopPage() {
+function ShopContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const collectionParam = searchParams.get('collection')
@@ -423,5 +423,24 @@ export default function ShopPage() {
 
       <Footer />
     </main>
+  )
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-white">
+        <Header cartCount={0} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+          <div className="animate-pulse">
+            <div className="h-12 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div className="h-6 bg-gray-200 rounded w-1/2 mb-8"></div>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    }>
+      <ShopContent />
+    </Suspense>
   )
 }
