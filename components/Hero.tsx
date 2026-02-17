@@ -9,7 +9,7 @@ const heroSlides = [
     subtitle: 'Celebrating love stories since 1837',
     ctaText: 'Shop Now',
     ctaLink: '#',
-    image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1200&h=600&fit=crop',
+    image: '/slide1.jpg',
   },
   {
     title: 'Elegance in Every Detail',
@@ -51,19 +51,25 @@ export default function Hero() {
         </div>
 
         {/* Content */}
-        <div className="relative h-full flex flex-col justify-center items-center px-6 md:px-12 lg:px-16 text-center">
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 md:mb-6 max-w-4xl">
-            {heroSlides[currentSlide].title}
-          </h1>
-          <p className="text-lg md:text-xl text-white/90 mb-6 md:mb-8 max-w-2xl">
-            {heroSlides[currentSlide].subtitle}
-          </p>
-          <a
-            href={heroSlides[currentSlide].ctaLink}
-            className="inline-flex items-center bg-white text-gray-900 px-6 md:px-8 py-3 md:py-4 rounded-xl font-medium hover:bg-gray-100 transition-colors"
-          >
-            {heroSlides[currentSlide].ctaText}
-          </a>
+        <div className={`relative h-full flex flex-col justify-center px-6 md:px-12 lg:px-16 ${
+          currentSlide === 0 
+            ? 'items-start text-left' 
+            : 'items-center text-center'
+        }`}>
+          <div className={currentSlide === 0 ? 'max-w-2xl' : 'max-w-4xl'}>
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 md:mb-6">
+              {heroSlides[currentSlide].title}
+            </h1>
+            <p className="text-lg md:text-xl text-white/90 mb-6 md:mb-8 max-w-xl">
+              {heroSlides[currentSlide].subtitle}
+            </p>
+            <a
+              href={heroSlides[currentSlide].ctaLink}
+              className="inline-flex items-center bg-white text-gray-900 px-6 md:px-8 py-3 md:py-4 rounded-xl font-medium hover:bg-gray-100 transition-colors"
+            >
+              {heroSlides[currentSlide].ctaText}
+            </a>
+          </div>
         </div>
 
         {/* Carousel Indicators */}
