@@ -125,7 +125,7 @@ export default function CategorySlider() {
                     style={{ width: `${100 / itemsPerView}%` }}
                   >
                     <Link href={`/product/${product.id}`} className="block">
-                      <div className="group bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300 cursor-pointer">
+                      <div className="group bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer">
                         <div className="relative aspect-[4/3] overflow-hidden bg-gray-50">
                           <img
                             src={product.image}
@@ -133,7 +133,7 @@ export default function CategorySlider() {
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                           <button
-                            className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white shadow-md hover:bg-gray-900 hover:text-white flex items-center justify-center transition-colors duration-200 opacity-0 group-hover:opacity-100"
+                            className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white shadow-md hover:bg-[#3D2B57] hover:text-white flex items-center justify-center transition-colors duration-200 opacity-0 group-hover:opacity-100"
                             aria-label={`Add ${product.name} to cart`}
                             onClick={(e) => e.preventDefault()}
                           >

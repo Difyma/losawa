@@ -163,7 +163,7 @@ export default function ProductPage() {
             <div className="flex gap-4 mb-8">
               <button
                 onClick={addToCart}
-                className="flex-1 bg-gray-900 text-white py-4 px-8 rounded-xl font-medium hover:bg-gray-800 transition-colors"
+                className="flex-1 bg-[#3D2B57] text-white py-4 px-8 rounded-xl font-medium hover:bg-[#2d1f40] transition-colors"
               >
                 Add to Cart — {formatPrice(product.price * quantity)}
               </button>
@@ -211,7 +211,7 @@ export default function ProductPage() {
                 <Link
                   key={relatedProduct.id}
                   href={`/product/${relatedProduct.id}`}
-                  className="group bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300"
+                  className="group bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300"
                 >
                   <div className="relative aspect-square overflow-hidden bg-gray-50">
                     <img

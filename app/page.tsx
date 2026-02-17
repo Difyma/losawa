@@ -4,10 +4,9 @@ import { useState } from 'react'
 import Header from '@/components/Header'
 import Hero from '@/components/Hero'
 import PerfectGift from '@/components/PerfectGift'
-import FeaturedProducts from '@/components/FeaturedProducts'
 import BestsellersBlock from '@/components/BestsellersBlock'
-import CategoryGrid from '@/components/CategoryGrid'
-import CategorySlider from '@/components/CategorySlider'
+import SplitBanner from '@/components/SplitBanner'
+import ShopByCategoryFilter from '@/components/ShopByCategoryFilter'
 import GiftingServices from '@/components/GiftingServices'
 import Newsletter from '@/components/Newsletter'
 import PromoBanner from '@/components/PromoBanner'
@@ -21,9 +20,6 @@ export default function Home() {
   const addToCart = (productId: number) => {
     setCartItems([...cartItems, productId])
   }
-
-  // Get romantic gifts (first 8 products)
-  const romanticGifts = products.slice(0, 8)
 
   // Bestsellers: mix of rings, pendants (necklaces), earrings, bracelets
   const bestsellers = [
@@ -40,25 +36,17 @@ export default function Home() {
       {/* Hero Section */}
       <Hero />
 
-      {/* Shop by Category Grid */}
-      <CategoryGrid />
+      {/* Our Collections */}
+      <Collections />
+
+      {/* Shop by Category: filter buttons + product grid + More */}
+      <ShopByCategoryFilter products={products} onAddToCart={addToCart} />
+
+      {/* Split banner with CTA */}
+      <SplitBanner />
 
       {/* Bestsellers: rings, pendants, earrings, bracelets */}
       <BestsellersBlock products={bestsellers} onAddToCart={addToCart} />
-
-      {/* Collections */}
-      <Collections />
-
-      {/* Category Slider */}
-      <CategorySlider />
-
-      {/* Featured Products - Popular purchases */}
-      <FeaturedProducts
-        products={romanticGifts}
-        title="Popular purchases"
-        subtitle=""
-        onAddToCart={addToCart}
-      />
 
       {/* Promo Banner */}
       <PromoBanner />

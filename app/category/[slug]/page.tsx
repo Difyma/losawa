@@ -288,7 +288,7 @@ export default function CategoryPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredProducts.map((product) => (
                   <Link key={product.id} href={`/product/${product.id}`}>
-                    <div className="group bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300 cursor-pointer">
+                    <div className="group bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer">
                       <div className="relative aspect-square overflow-hidden bg-gray-50">
                         <img
                           src={product.image}
@@ -300,7 +300,7 @@ export default function CategoryPage() {
                             e.preventDefault()
                             addToCart(product.id)
                           }}
-                          className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white shadow-md hover:bg-gray-900 hover:text-white flex items-center justify-center transition-colors duration-200 opacity-0 group-hover:opacity-100"
+                          className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white shadow-md hover:bg-[#3D2B57] hover:text-white flex items-center justify-center transition-colors duration-200 opacity-0 group-hover:opacity-100"
                         >
                           <Plus className="w-5 h-5" />
                         </button>

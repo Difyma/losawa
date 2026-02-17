@@ -39,7 +39,7 @@ export default function FeaturedProducts({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {products.slice(0, 8).map((product) => (
             <Link key={product.id} href={`/product/${product.id}`}>
-              <div className="group relative bg-white rounded-xl overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer">
+              <div className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 cursor-pointer">
                 <div className="relative w-full aspect-square overflow-hidden bg-gray-50">
                   <img
                     src={product.image}
@@ -60,7 +60,7 @@ export default function FeaturedProducts({
                         e.preventDefault()
                         onAddToCart(product.id)
                       }}
-                      className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-900 hover:text-white flex items-center justify-center transition-colors duration-200 group/btn"
+                      className="w-10 h-10 rounded-full bg-gray-100 hover:bg-[#3D2B57] hover:text-white flex items-center justify-center transition-colors duration-200 group/btn"
                       aria-label={`Add ${product.name} to cart`}
                     >
                       <Plus className="w-5 h-5 group-hover/btn:rotate-90 transition-transform duration-200" />

@@ -59,7 +59,7 @@ export default function BestsellersBlock({ products, onAddToCart }: BestsellersB
               const product = item.product
               return (
                 <Link key={product.id} href={`/product/${product.id}`}>
-                  <div className="group relative bg-white rounded-xl overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer">
+                  <div className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 cursor-pointer">
                     <div className="relative w-full aspect-square overflow-hidden bg-gray-50">
                       <img
                         src={product.image}
@@ -81,7 +81,7 @@ export default function BestsellersBlock({ products, onAddToCart }: BestsellersB
                               e.preventDefault()
                               onAddToCart(product.id)
                             }}
-                            className="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-900 hover:text-white flex items-center justify-center transition-colors duration-200 group/btn"
+                            className="w-9 h-9 rounded-full bg-gray-100 hover:bg-[#3D2B57] hover:text-white flex items-center justify-center transition-colors duration-200 group/btn"
                             aria-label={`Add ${product.name} to cart`}
                           >
                             <Plus className="w-4 h-4 group-hover/btn:rotate-90 transition-transform duration-200" />
