@@ -3,6 +3,8 @@ import { requireAdmin } from '@/lib/auth'
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     await requireAdmin()
