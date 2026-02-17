@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { Prisma } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,7 +37,7 @@ export async function GET(
       subtitle: collection.subtitle,
       quote: collection.quote,
       fullDescription: collection.fullDescription,
-      products: collection.products.map((product: Prisma.ProductGetPayload<{ include: { category: true; collection: true } }>) => ({
+      products: collection.products.map((product) => ({
         id: product.id,
         name: product.name,
         price: product.price,
