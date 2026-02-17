@@ -24,4 +24,10 @@ export const collections: Collection[] = [
     description: 'Timeless elegance featuring vibrant gemstones and refined craftsmanship',
     image: '/products/22.jpg',
   },
+  {
+    id: 'embrace',
+    name: 'Embrace',
+    description: 'Sophisticated designs celebrating love and connection with exquisite gemstones',
+    image: '/products/34.jpg',
+  },
 ]
