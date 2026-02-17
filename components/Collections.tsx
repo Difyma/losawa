@@ -19,11 +19,11 @@ export default function Collections() {
         </div>
 
         {/* Collections Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
           {collections.map((collection) => (
             <Link
               key={collection.id}
-              href={`/collection/${collection.id}`}
+              href={`/shop?collection=${collection.id}`}
               className="group relative overflow-hidden rounded-2xl bg-white shadow-sm hover:shadow-xl transition-all duration-500"
             >
               {/* Image Container */}
@@ -58,7 +58,7 @@ export default function Collections() {
         <div className="text-center mt-12">
           <Link
             href="/collections"
-            className="inline-flex items-center justify-center px-8 py-4 bg-gray-900 text-white font-medium rounded-full hover:bg-gray-800 transition-colors duration-200"
+            className="inline-flex items-center justify-center px-8 py-4 bg-[#3D2B57] text-white font-medium rounded-full hover:bg-[#2d1f40] transition-colors duration-200"
           >
             View All Collections
             <ArrowRight className="w-5 h-5 ml-2" />

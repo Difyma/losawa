@@ -54,6 +54,9 @@ export default function Header({ cartCount }: HeaderProps) {
             <a href="#" className="text-sm font-medium text-gray-900 hover:text-gray-600 transition-colors">
               BRACELETS
             </a>
+            <Link href="/about" className="text-sm font-medium text-gray-900 hover:text-gray-600 transition-colors">
+              ABOUT US
+            </Link>
           </nav>
 
           {/* Right side icons */}
@@ -97,6 +100,9 @@ export default function Header({ cartCount }: HeaderProps) {
               <a href="#" className="text-sm font-medium text-gray-900 hover:text-gray-600 transition-colors">
                 BRACELETS
               </a>
+              <Link href="/about" className="text-sm font-medium text-gray-900 hover:text-gray-600 transition-colors">
+                ABOUT US
+              </Link>
               <a href="#" className="text-sm font-medium text-gray-900 hover:text-gray-600 transition-colors">
                 LOGIN
               </a>

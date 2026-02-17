@@ -12,7 +12,7 @@ module.exports = {
         foreground: '#1A1A1A',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Raleway', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         'xl': '1rem',

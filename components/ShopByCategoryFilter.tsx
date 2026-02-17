@@ -58,8 +58,8 @@ export default function ShopByCategoryFilter({ products, onAddToCart }: ShopByCa
               onClick={() => setActiveCategory(slug)}
               className={`px-5 md:px-6 py-2.5 md:py-3 rounded-full text-sm md:text-base font-medium transition-colors ${
                 activeCategory === slug
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                  ? 'bg-[#3D2B57] text-white'
+                  : 'bg-[#3D2B57]/10 text-[#3D2B57] hover:bg-[#3D2B57]/20 border border-[#3D2B57]/30'
               }`}
             >
               {label}

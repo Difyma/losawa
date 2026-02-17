@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight, Plus, SlidersHorizontal, X } from 'lucide-react'
 import { products } from '@/data/products'
+import { collections } from '@/data/collections'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
@@ -24,14 +26,34 @@ const formatPrice = (price: number) =>
   }).format(price)
 
 export default function ShopPage() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const collectionParam = searchParams.get('collection')
+  
   const [cartItems, setCartItems] = useState<number[]>([])
   const [selectedMaterial, setSelectedMaterial] = useState('All')
   const [selectedPriceRange, setSelectedPriceRange] = useState(priceRanges[0])
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [sortBy, setSortBy] = useState('featured')
 
+  // Map collection IDs to product name prefixes
+  const collectionNameMap: Record<string, string> = {
+    cleopatra: 'Cleopatra',
+    jacqueline: 'Jacqueline',
+    eclat: 'Eclat',
+    embrace: 'Embrace',
+  }
+
   const filteredProducts = useMemo(() => {
     let result = [...products]
+
+    // Filter by collection if collection param is present
+    if (collectionParam && collectionNameMap[collectionParam]) {
+      const collectionName = collectionNameMap[collectionParam]
+      result = result.filter((p) =>
+        p.name.toLowerCase().startsWith(collectionName.toLowerCase())
+      )
+    }
 
     if (selectedMaterial !== 'All') {
       result = result.filter((p) =>
@@ -60,7 +82,7 @@ export default function ShopPage() {
     }
 
     return result
-  }, [selectedMaterial, selectedPriceRange, sortBy])
+  }, [collectionParam, selectedMaterial, selectedPriceRange, sortBy])
 
   const addToCart = (productId: number) => {
     setCartItems([...cartItems, productId])
@@ -69,9 +91,13 @@ export default function ShopPage() {
   const clearFilters = () => {
     setSelectedMaterial('All')
     setSelectedPriceRange(priceRanges[0])
+    if (collectionParam) {
+      router.push('/shop')
+    }
   }
 
   const activeFiltersCount =
+    (collectionParam ? 1 : 0) +
     (selectedMaterial !== 'All' ? 1 : 0) +
     (selectedPriceRange.label !== 'All' ? 1 : 0)
 
@@ -86,18 +112,67 @@ export default function ShopPage() {
               Home
             </Link>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="text-gray-900">All Products</span>
+            <span className="text-gray-900">
+              {collectionParam && collectionNameMap[collectionParam]
+                ? `${collectionNameMap[collectionParam]} Collection`
+                : 'All Products'}
+            </span>
           </nav>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-          All Products
-        </h1>
-        <p className="text-gray-600 max-w-2xl mb-8">
-          Explore our full collection of handcrafted jewelry.
-        </p>
+        {collectionParam && collectionNameMap[collectionParam] ? (
+          <div className="mb-8 md:mb-12">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 lg:gap-8">
+              <div className="flex-1">
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+                  {collectionNameMap[collectionParam]} Collection
+                </h1>
+                {(() => {
+                  const collection = collections.find((c) => c.id === collectionParam)
+                  if (collection?.subtitle) {
+                    return (
+                      <p className="text-gray-700 text-base md:text-lg font-medium mb-4">
+                        {collection.subtitle}
+                      </p>
+                    )
+                  }
+                  if (collection?.quote) {
+                    return (
+                      <p className="text-gray-700 text-base md:text-lg italic leading-relaxed whitespace-pre-line">
+                        &ldquo;{collection.quote}&rdquo;
+                      </p>
+                    )
+                  }
+                  return null
+                })()}
+              </div>
+              {(() => {
+                const collection = collections.find((c) => c.id === collectionParam)
+                if (collection?.fullDescription) {
+                  return (
+                    <div className="lg:w-1/2 lg:max-w-2xl">
+                      <p className="text-gray-600 text-base md:text-lg leading-relaxed whitespace-pre-line">
+                        {collection.fullDescription}
+                      </p>
+                    </div>
+                  )
+                }
+                return null
+              })()}
+            </div>
+          </div>
+        ) : (
+          <>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              All Products
+            </h1>
+            <p className="text-gray-600 max-w-2xl mb-8">
+              Explore our full collection of handcrafted jewelry.
+            </p>
+          </>
+        )}
 
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-4 border-b border-gray-100">
           <div className="flex items-center gap-4">
