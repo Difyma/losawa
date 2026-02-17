@@ -426,6 +426,9 @@ function ShopContent() {
   )
 }
 
+// Force dynamic rendering to avoid SSR issues with search params
+export const dynamic = 'force-dynamic'
+
 export default function ShopPage() {
   return (
     <Suspense fallback={
