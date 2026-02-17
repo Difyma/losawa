@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
-import { Product } from '@/data/products'
+import { Product } from '@/lib/api'
 
 interface BestsellersBlockProps {
   products: Product[]
@@ -22,21 +22,29 @@ function formatPrice(price: number) {
 
 export default function BestsellersBlock({ products, onAddToCart }: BestsellersBlockProps) {
   // Use first 6 products for the grid (2 rows × 4 cols, 2 cells are text)
-  const gridProducts = products.slice(0, 6)
+  const validProducts = products.filter(p => p && p.id && p.name)
+  const gridProducts = validProducts.slice(0, 6)
+  
   const gridItems: Array<
     | { type: 'product'; product: Product }
     | { type: 'promo'; text: string }
     | { type: 'shopAll'; text: string }
   > = [
-    { type: 'product', product: gridProducts[0] },
-    { type: 'promo', text: PROMO_TEXT },
-    { type: 'product', product: gridProducts[1] },
-    { type: 'product', product: gridProducts[2] },
-    { type: 'product', product: gridProducts[3] },
-    { type: 'product', product: gridProducts[4] },
-    { type: 'shopAll', text: SHOP_ALL_LABEL },
-    { type: 'product', product: gridProducts[5] },
-  ]
+    gridProducts[0] ? { type: 'product' as const, product: gridProducts[0] } : { type: 'promo' as const, text: PROMO_TEXT },
+    { type: 'promo' as const, text: PROMO_TEXT },
+    gridProducts[1] ? { type: 'product' as const, product: gridProducts[1] } : { type: 'promo' as const, text: PROMO_TEXT },
+    gridProducts[2] ? { type: 'product' as const, product: gridProducts[2] } : { type: 'promo' as const, text: PROMO_TEXT },
+    gridProducts[3] ? { type: 'product' as const, product: gridProducts[3] } : { type: 'promo' as const, text: PROMO_TEXT },
+    gridProducts[4] ? { type: 'product' as const, product: gridProducts[4] } : { type: 'promo' as const, text: PROMO_TEXT },
+    { type: 'shopAll' as const, text: SHOP_ALL_LABEL },
+    gridProducts[5] ? { type: 'product' as const, product: gridProducts[5] } : { type: 'promo' as const, text: PROMO_TEXT },
+  ].filter((item): item is { type: 'product'; product: Product } | { type: 'promo'; text: string } | { type: 'shopAll'; text: string } => {
+    // Remove product items with invalid products
+    if (item.type === 'product') {
+      return !!(item.product && item.product.id)
+    }
+    return true
+  })
 
   return (
     <section className="py-12 md:py-16 lg:py-20 bg-white">
@@ -57,6 +65,9 @@ export default function BestsellersBlock({ products, onAddToCart }: BestsellersB
           {gridItems.map((item, index) => {
             if (item.type === 'product') {
               const product = item.product
+              if (!product || !product.id) {
+                return null
+              }
               return (
                 <Link key={product.id} href={`/product/${product.id}`}>
                   <div className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 cursor-pointer">
@@ -65,6 +76,10 @@ export default function BestsellersBlock({ products, onAddToCart }: BestsellersB
                         src={product.image}
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.src = '/products/1.jpg' // Fallback to first product image
+                        }}
                       />
                     </div>
                     <div className="p-4 md:p-5">

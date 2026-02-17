@@ -26,7 +26,7 @@ const categories: Category[] = [
   },
   {
     name: 'Earrings',
-    image: 'https://images.unsplash.com/photo-1603561596112-0d23b1e1e5e5?w=600&h=400&fit=crop',
+    image: '/categories/earrings.jpg',
     slug: 'earrings',
     count: 7550,
   },
@@ -69,6 +69,10 @@ export default function CategoryGrid() {
                   src={category.image}
                   alt={category.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    target.src = '/categories/default.jpg'
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
               </div>

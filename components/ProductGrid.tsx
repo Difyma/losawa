@@ -49,6 +49,10 @@ export default function ProductGrid({ products, onAddToCart }: ProductGridProps)
                 src={product.image}
                 alt={product.name}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.src = '/products/1.jpg' // Fallback to first product image
+                }}
               />
             </div>
 

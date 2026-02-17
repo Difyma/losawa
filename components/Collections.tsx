@@ -2,9 +2,40 @@
 
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
-import { collections } from '@/data/collections'
+import { useCollections } from '@/hooks/useCollections'
 
 export default function Collections() {
+  const { collections, loading, error } = useCollections()
+
+  if (loading) {
+    return (
+      <section className="py-16 md:py-20 lg:py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Our Collections
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="animate-pulse bg-gray-200 rounded-2xl aspect-[4/5]" />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (error) {
+    return (
+      <section className="py-16 md:py-20 lg:py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center text-red-600">Error loading collections: {error}</div>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className="py-16 md:py-20 lg:py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -23,7 +54,7 @@ export default function Collections() {
           {collections.map((collection) => (
             <Link
               key={collection.id}
-              href={`/shop?collection=${collection.id}`}
+              href={`/shop?collection=${collection.slug}`}
               className="group relative overflow-hidden rounded-2xl bg-white shadow-sm hover:shadow-xl transition-all duration-500"
             >
               {/* Image Container */}

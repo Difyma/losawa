@@ -4,7 +4,8 @@ import { useState, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight, Plus, SlidersHorizontal, X } from 'lucide-react'
-import { products, Product } from '@/data/products'
+import { useProducts } from '@/hooks/useProducts'
+import { Product } from '@/lib/api'
 import Header from '@/components/Header'
 
 const categoryNames: Record<string, string> = {
@@ -44,22 +45,16 @@ export default function CategoryPage() {
 
   const categoryName = categoryNames[slug] || slug
 
+  // Fetch products for this category
+  const { products: apiProducts, loading: productsLoading } = useProducts({
+    category: slug,
+    material: selectedMaterial !== 'All' ? selectedMaterial : undefined,
+    minPrice: selectedPriceRange.min > 0 ? selectedPriceRange.min : undefined,
+    maxPrice: selectedPriceRange.max < Infinity ? selectedPriceRange.max : undefined,
+  })
+
   const filteredProducts = useMemo(() => {
-    let result = products.filter(p => 
-      p.category.toLowerCase() === slug.toLowerCase() ||
-      (slug === 'necklaces' && p.category === 'necklaces') ||
-      (slug === 'engagement' && p.category === 'rings')
-    )
-
-    if (selectedMaterial !== 'All') {
-      result = result.filter(p => 
-        p.material.toLowerCase().includes(selectedMaterial.toLowerCase())
-      )
-    }
-
-    result = result.filter(p => 
-      p.price >= selectedPriceRange.min && p.price <= selectedPriceRange.max
-    )
+    let result = apiProducts.filter(p => p && p.id)
 
     switch (sortBy) {
       case 'price-low':
@@ -74,7 +69,7 @@ export default function CategoryPage() {
     }
 
     return result
-  }, [slug, selectedMaterial, selectedPriceRange, sortBy])
+  }, [apiProducts, sortBy])
 
   const addToCart = (productId: number) => {
     setCartItems([...cartItems, productId])
@@ -284,9 +279,15 @@ export default function CategoryPage() {
 
           {/* Products Grid */}
           <div className="flex-1">
-            {filteredProducts.length > 0 ? (
+            {productsLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredProducts.map((product) => (
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="animate-pulse bg-gray-200 rounded-xl aspect-square" />
+                ))}
+              </div>
+            ) : filteredProducts.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filteredProducts.filter(p => p && p.id).map((product) => (
                   <Link key={product.id} href={`/product/${product.id}`}>
                     <div className="group bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer">
                       <div className="relative aspect-square overflow-hidden bg-gray-50">
@@ -294,6 +295,10 @@ export default function CategoryPage() {
                           src={product.image}
                           alt={product.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = '/products/1.jpg' // Fallback to first product image
+                          }}
                         />
                         <button
                           onClick={(e) => {

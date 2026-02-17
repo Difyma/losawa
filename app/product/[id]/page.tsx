@@ -86,6 +86,10 @@ export default function ProductPage() {
                 src={productImages[selectedImage]}
                 alt={product.name}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.src = '/products/1.jpg' // Fallback to first product image
+                }}
               />
             </div>
             {/* Thumbnail Gallery */}
@@ -102,6 +106,10 @@ export default function ProductPage() {
                     src={img}
                     alt={`${product.name} view ${index + 1}`}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.src = '/products/1.jpg' // Fallback to first product image
+                    }}
                   />
                 </button>
               ))}

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Plus, ArrowRight } from 'lucide-react'
-import { Product } from '@/data/products'
+import { Product } from '@/lib/api'
 
 const ITEMS_PER_CATEGORY = 6
 
@@ -35,8 +35,8 @@ export default function ShopByCategoryFilter({ products, onAddToCart }: ShopByCa
 
   const filteredProducts =
     activeCategory === 'all'
-      ? products
-      : products.filter((p) => p.category === activeCategory)
+      ? products.filter(p => p && p.id && p.category)
+      : products.filter((p) => p && p.id && p.category && p.category.slug === activeCategory)
 
   const displayedProducts = filteredProducts.slice(0, ITEMS_PER_CATEGORY)
   const hasMore = filteredProducts.length > ITEMS_PER_CATEGORY
@@ -68,7 +68,9 @@ export default function ShopByCategoryFilter({ products, onAddToCart }: ShopByCa
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-          {displayedProducts.map((product) => (
+          {displayedProducts.map((product) => {
+            if (!product || !product.id) return null
+            return (
             <Link key={product.id} href={`/product/${product.id}`}>
               <div className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 cursor-pointer">
                 <div className="relative w-full aspect-square overflow-hidden bg-gray-50">
@@ -100,7 +102,8 @@ export default function ShopByCategoryFilter({ products, onAddToCart }: ShopByCa
                 </div>
               </div>
             </Link>
-          ))}
+            )
+          })}
 
           {/* More block — link to full category page */}
           {displayedProducts.length > 0 && (

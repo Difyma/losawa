@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useMemo, Suspense } from 'react'
+import { useState, useMemo, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight, Plus, SlidersHorizontal, X } from 'lucide-react'
-import { products } from '@/data/products'
-import { collections } from '@/data/collections'
+import { useProducts } from '@/hooks/useProducts'
+import { useCollections } from '@/hooks/useCollections'
+import { getCollection } from '@/lib/api'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
@@ -35,36 +36,39 @@ function ShopContent() {
   const [selectedPriceRange, setSelectedPriceRange] = useState(priceRanges[0])
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [sortBy, setSortBy] = useState('featured')
+  const [collection, setCollection] = useState<{ name: string; subtitle?: string; fullDescription?: string } | null>(null)
 
-  // Map collection IDs to product name prefixes
-  const collectionNameMap: Record<string, string> = {
-    cleopatra: 'Cleopatra',
-    jacqueline: 'Jacqueline',
-    eclat: 'Eclat',
-    embrace: 'Embrace',
-  }
+  // Fetch products with filters
+  const { products: apiProducts, loading: productsLoading } = useProducts({
+    collection: collectionParam || undefined,
+    material: selectedMaterial !== 'All' ? selectedMaterial : undefined,
+    minPrice: selectedPriceRange.min > 0 ? selectedPriceRange.min : undefined,
+    maxPrice: selectedPriceRange.max < Infinity ? selectedPriceRange.max : undefined,
+  })
+
+  const { collections: apiCollections } = useCollections()
+
+  // Fetch collection details if collection param is present
+  useEffect(() => {
+    if (collectionParam) {
+      getCollection(collectionParam)
+        .then((col) => {
+          setCollection({
+            name: col.name,
+            subtitle: col.subtitle,
+            fullDescription: col.fullDescription,
+          })
+        })
+        .catch(() => {
+          setCollection(null)
+        })
+    } else {
+      setCollection(null)
+    }
+  }, [collectionParam])
 
   const filteredProducts = useMemo(() => {
-    let result = [...products]
-
-    // Filter by collection if collection param is present
-    if (collectionParam && collectionNameMap[collectionParam]) {
-      const collectionName = collectionNameMap[collectionParam]
-      result = result.filter((p) =>
-        p.name.toLowerCase().startsWith(collectionName.toLowerCase())
-      )
-    }
-
-    if (selectedMaterial !== 'All') {
-      result = result.filter((p) =>
-        p.material.toLowerCase().includes(selectedMaterial.toLowerCase())
-      )
-    }
-
-    result = result.filter(
-      (p) =>
-        p.price >= selectedPriceRange.min && p.price <= selectedPriceRange.max
-    )
+    let result = apiProducts.filter(p => p && p.id)
 
     switch (sortBy) {
       case 'price-low':
@@ -82,7 +86,7 @@ function ShopContent() {
     }
 
     return result
-  }, [collectionParam, selectedMaterial, selectedPriceRange, sortBy])
+  }, [apiProducts, sortBy])
 
   const addToCart = (productId: number) => {
     setCartItems([...cartItems, productId])
@@ -113,8 +117,8 @@ function ShopContent() {
             </Link>
             <ChevronRight className="w-4 h-4 mx-2" />
             <span className="text-gray-900">
-              {collectionParam && collectionNameMap[collectionParam]
-                ? `${collectionNameMap[collectionParam]} Collection`
+              {collectionParam && collection
+                ? `${collection.name} Collection`
                 : 'All Products'}
             </span>
           </nav>
@@ -122,45 +126,26 @@ function ShopContent() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        {collectionParam && collectionNameMap[collectionParam] ? (
+        {collectionParam && collection ? (
           <div className="mb-8 md:mb-12">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 lg:gap-8">
               <div className="flex-1">
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-                  {collectionNameMap[collectionParam]} Collection
+                  {collection.name} Collection
                 </h1>
-                {(() => {
-                  const collection = collections.find((c) => c.id === collectionParam)
-                  if (collection?.subtitle) {
-                    return (
-                      <p className="text-gray-700 text-base md:text-lg font-medium mb-4">
-                        {collection.subtitle}
-                      </p>
-                    )
-                  }
-                  if (collection?.quote) {
-                    return (
-                      <p className="text-gray-700 text-base md:text-lg italic leading-relaxed whitespace-pre-line">
-                        &ldquo;{collection.quote}&rdquo;
-                      </p>
-                    )
-                  }
-                  return null
-                })()}
+                {collection.subtitle && (
+                  <p className="text-gray-700 text-base md:text-lg font-medium mb-4">
+                    {collection.subtitle}
+                  </p>
+                )}
               </div>
-              {(() => {
-                const collection = collections.find((c) => c.id === collectionParam)
-                if (collection?.fullDescription) {
-                  return (
-                    <div className="lg:w-1/2 lg:max-w-2xl">
-                      <p className="text-gray-600 text-base md:text-lg leading-relaxed whitespace-pre-line">
-                        {collection.fullDescription}
-                      </p>
-                    </div>
-                  )
-                }
-                return null
-              })()}
+              {collection.fullDescription && (
+                <div className="lg:w-1/2 lg:max-w-2xl">
+                  <p className="text-gray-600 text-base md:text-lg leading-relaxed whitespace-pre-line">
+                    {collection.fullDescription}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -372,7 +357,7 @@ function ShopContent() {
           <div className="flex-1">
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-6 pb-16">
-                {filteredProducts.map((product) => (
+                {filteredProducts.filter(p => p && p.id).map((product) => (
                   <Link key={product.id} href={`/product/${product.id}`}>
                     <div className="group bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer">
                       <div className="relative aspect-square overflow-hidden bg-gray-50">
@@ -380,6 +365,10 @@ function ShopContent() {
                           src={product.image}
                           alt={product.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = '/products/1.jpg' // Fallback to first product image
+                          }}
                         />
                         <button
                           onClick={(e) => {
