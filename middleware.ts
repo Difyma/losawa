@@ -50,8 +50,9 @@ export const config = {
      * Match all request paths except:
      * - _next/static (static files)
      * - _next/image (image optimization)
+     * - /api/* (API routes - don't interfere with admin auth)
      * - favicon.ico, static assets
      */
-    '/((?!_next|static|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$).*)',
+    '/((?!_next|api|static|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$).*)',
   ],
 }
