@@ -6,13 +6,17 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     // Log for debugging
-    console.log('DATABASE_URL:', process.env.DATABASE_URL)
+    console.log('API Products called')
+    console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL)
+    
     const searchParams = request.nextUrl.searchParams
     const category = searchParams.get('category')
     const collection = searchParams.get('collection')
     const material = searchParams.get('material')
     const minPrice = searchParams.get('minPrice')
     const maxPrice = searchParams.get('maxPrice')
+
+    console.log('Query params:', { category, collection, material, minPrice, maxPrice })
 
     const where: any = {}
 
@@ -47,10 +51,12 @@ export async function GET(request: NextRequest) {
       if (maxPrice) where.price.lte = parseFloat(maxPrice)
     }
 
+    console.log('Fetching products with where:', where)
+
     const products = await prisma.product.findMany({
       where: {
         ...where,
-        isActive: true, // Only show active products on frontend
+        isActive: true,
       },
       include: {
         category: true,
@@ -60,6 +66,8 @@ export async function GET(request: NextRequest) {
         dateAdded: 'desc',
       },
     })
+
+    console.log('Products fetched:', products.length)
 
     // Transform products to match frontend interface
     type ProductWithRelations = (typeof products)[number]
@@ -92,7 +100,9 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching products:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : ''
     console.error('Full error:', errorMessage)
+    console.error('Stack:', errorStack)
     return NextResponse.json(
       { error: 'Failed to fetch products', details: errorMessage },
       { status: 500 }

@@ -8,7 +8,21 @@ declare global {
 }
 
 const prismaClientSingleton = () => {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+  const connectionString = process.env.DATABASE_URL
+  
+  if (!connectionString) {
+    throw new Error('DATABASE_URL is not defined')
+  }
+
+  console.log('Creating Prisma client with DATABASE_URL:', connectionString.replace(/:[^:@]+@/, ':****@'))
+
+  const pool = new Pool({ 
+    connectionString,
+    ssl: {
+      rejectUnauthorized: false
+    }
+  })
+  
   const adapter = new PrismaPg(pool)
   
   return new PrismaClient({
