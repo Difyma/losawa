@@ -37,7 +37,7 @@ export async function GET(
       subtitle: collection.subtitle,
       quote: collection.quote,
       fullDescription: collection.fullDescription,
-      products: collection.products.map((product) => ({
+      products: collection.products.map((product: typeof collection.products[0]) => ({
         id: product.id,
         name: product.name,
         price: product.price,
