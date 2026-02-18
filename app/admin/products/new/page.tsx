@@ -51,25 +51,46 @@ export default function NewProductPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
+    // Check file size (4MB limit)
+    if (file.size > 4 * 1024 * 1024) {
+      alert('File too large. Maximum size is 4MB.')
+      return
+    }
+
     setUploading(true)
     try {
       const uploadFormData = new FormData()
       uploadFormData.append('file', file)
+
+      console.log('Uploading file:', file.name, 'Size:', (file.size / 1024 / 1024).toFixed(2), 'MB')
 
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
         body: uploadFormData,
       })
 
+      console.log('Upload response status:', res.status)
+
+      // Check if response is JSON
+      const contentType = res.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await res.text()
+        console.error('Non-JSON response:', text.substring(0, 200))
+        alert('Server error. Please try again.')
+        return
+      }
+
       const data = await res.json()
+      console.log('Upload response:', data)
+
       if (res.ok) {
         setFormData((prev) => ({ ...prev, image: data.path }))
       } else {
-        alert('Failed to upload image')
+        alert(data.error || 'Failed to upload image')
       }
     } catch (error) {
       console.error('Error uploading image:', error)
-      alert('Failed to upload image')
+      alert('Failed to upload image. Please check console for details.')
     } finally {
       setUploading(false)
     }
