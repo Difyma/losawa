@@ -5,20 +5,18 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
-    // Log for debugging
     console.log('API Products called')
     console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL)
     
     const searchParams = request.nextUrl.searchParams
     const category = searchParams.get('category')
     const collection = searchParams.get('collection')
-    const material = searchParams.get('material')
-    const minPrice = searchParams.get('minPrice')
-    const maxPrice = searchParams.get('maxPrice')
 
-    console.log('Query params:', { category, collection, material, minPrice, maxPrice })
+    console.log('Query params:', { category, collection })
 
-    const where: any = {}
+    const where: any = {
+      isActive: true,
+    }
 
     if (category) {
       const categoryRecord = await prisma.category.findUnique({
@@ -38,26 +36,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    if (material) {
-      where.material = {
-        contains: material,
-        mode: 'insensitive',
-      }
-    }
-
-    if (minPrice || maxPrice) {
-      where.price = {}
-      if (minPrice) where.price.gte = parseFloat(minPrice)
-      if (maxPrice) where.price.lte = parseFloat(maxPrice)
-    }
-
-    console.log('Fetching products with where:', where)
-
     const products = await prisma.product.findMany({
-      where: {
-        ...where,
-        isActive: true,
-      },
+      where,
       include: {
         category: true,
         collection: true,
@@ -69,42 +49,40 @@ export async function GET(request: NextRequest) {
 
     console.log('Products fetched:', products.length)
 
-    // Transform products to match frontend interface
-    type ProductWithRelations = (typeof products)[number]
-
-    const transformedProducts = products
-      .filter((product: ProductWithRelations) => product && product.id && product.category)
-      .map((product: ProductWithRelations) => ({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image,
-        material: product.material,
-        description: product.description || undefined,
-        dateAdded: product.dateAdded.toISOString(),
-        category: {
-          id: product.category.id,
-          slug: product.category.slug,
-          name: product.category.name,
-        },
-        collection: product.collection
-          ? {
-              id: product.collection.id,
-              slug: product.collection.slug,
-              name: product.collection.name,
-            }
-          : undefined,
-      }))
+    const transformedProducts = products.map((product) => ({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      material: product.material,
+      description: product.description || undefined,
+      dateAdded: product.dateAdded.toISOString(),
+      category: {
+        id: product.category.id,
+        slug: product.category.slug,
+        name: product.category.name,
+      },
+      collection: product.collection
+        ? {
+            id: product.collection.id,
+            slug: product.collection.slug,
+            name: product.collection.name,
+          }
+        : undefined,
+    }))
 
     return NextResponse.json(transformedProducts)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching products:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    const errorStack = error instanceof Error ? error.stack : ''
-    console.error('Full error:', errorMessage)
-    console.error('Stack:', errorStack)
+    console.error('Error code:', error.code)
+    console.error('Error message:', error.message)
+    
     return NextResponse.json(
-      { error: 'Failed to fetch products', details: errorMessage },
+      { 
+        error: 'Failed to fetch products', 
+        details: error.message,
+        code: error.code 
+      },
       { status: 500 }
     )
   }

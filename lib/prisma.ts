@@ -6,8 +6,18 @@ declare global {
 }
 
 const prismaClientSingleton = () => {
+  const databaseUrl = process.env.DATABASE_URL
+  
+  console.log('Prisma Client initializing...')
+  console.log('DATABASE_URL exists:', !!databaseUrl)
+  console.log('NODE_ENV:', process.env.NODE_ENV)
+  
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL environment variable is not set')
+  }
+
   return new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   })
 }
 

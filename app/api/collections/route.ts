@@ -15,16 +15,18 @@ export async function GET() {
     })
 
     console.log('Collections fetched:', collections.length)
-
     return NextResponse.json(collections)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching collections:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    const errorStack = error instanceof Error ? error.stack : ''
-    console.error('Full error:', errorMessage)
-    console.error('Stack:', errorStack)
+    console.error('Error code:', error.code)
+    console.error('Error message:', error.message)
+    
     return NextResponse.json(
-      { error: 'Failed to fetch collections', details: errorMessage },
+      { 
+        error: 'Failed to fetch collections', 
+        details: error.message,
+        code: error.code 
+      },
       { status: 500 }
     )
   }
