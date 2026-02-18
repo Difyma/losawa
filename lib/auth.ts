@@ -34,10 +34,19 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
     const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value
     
     if (!sessionId) {
+      console.log('No session cookie found')
       return null
     }
 
-    const userId = sessionId.split('-')[0]
+    console.log('Session ID from cookie:', sessionId.substring(0, 30) + '...')
+
+    // Extract user ID from session (format: userId-timestamp)
+    // UUID has format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    // So we need to get everything except the last part (timestamp)
+    const lastDashIndex = sessionId.lastIndexOf('-')
+    const userId = sessionId.slice(0, lastDashIndex)
+    
+    console.log('Extracted user ID:', userId)
     
     const user = await withRetry(() => 
       prisma.adminUser.findUnique({
@@ -49,6 +58,8 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
         },
       })
     )
+
+    console.log('User found:', user ? user.email : 'NOT FOUND')
 
     return user
   } catch (error) {
