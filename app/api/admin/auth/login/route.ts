@@ -33,25 +33,10 @@ export async function POST(request: NextRequest) {
 
     // Create session
     const sessionId = `${user.id}-${Date.now()}`
-    const cookieStore = await cookies()
     
     console.log('Setting cookie with params:', {
-      name: 'admin_session',
       sessionId: sessionId.substring(0, 10) + '...',
-      secure: true,
-      sameSite: 'none',
-      path: '/',
     })
-    
-    cookieStore.set('admin_session', sessionId, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: 60 * 60 * 24 * 7,
-      path: '/',
-    })
-
-    console.log('Cookie set successfully')
 
     const response = NextResponse.json({
       success: true,
@@ -62,16 +47,18 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Also set cookie in response for client-side
+    // Set cookie in response
     response.cookies.set('admin_session', sessionId, {
       httpOnly: true,
       secure: true,
-      sameSite: 'none',
+      sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7,
       path: '/',
     })
 
+    console.log('Cookie set in response')
     console.log('=== LOGIN COMPLETE ===')
+    
     return response
   } catch (error) {
     console.error('Login error:', error)
