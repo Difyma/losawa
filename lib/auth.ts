@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs'
-import { prisma } from './prisma'
+import { prisma, withRetry } from './prisma'
 import { cookies } from 'next/headers'
 
 const SESSION_COOKIE_NAME = 'admin_session'
@@ -23,7 +23,6 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 
 // Create session
 export async function createSession(userId: string): Promise<string> {
-  // Simple session: in production use JWT or proper session store
   const sessionId = `${userId}-${Date.now()}`
   return sessionId
 }
@@ -38,17 +37,18 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
       return null
     }
 
-    // Extract user ID from session (simple implementation)
     const userId = sessionId.split('-')[0]
     
-    const user = await prisma.adminUser.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-      },
-    })
+    const user = await withRetry(() => 
+      prisma.adminUser.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+        },
+      })
+    )
 
     return user
   } catch (error) {
@@ -59,9 +59,11 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
 
 // Login
 export async function login(email: string, password: string): Promise<AdminUser | null> {
-  const user = await prisma.adminUser.findUnique({
-    where: { email },
-  })
+  const user = await withRetry(() => 
+    prisma.adminUser.findUnique({
+      where: { email },
+    })
+  )
 
   if (!user) {
     return null
