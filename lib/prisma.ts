@@ -40,7 +40,7 @@ export async function withRetry<T>(
       
       // Only retry on connection errors
       if (error.message?.includes('MaxClientsInSessionMode') || 
-          error.message?.includes('Can''t reach database server')) {
+          error.message?.includes("Can't reach database server")) {
         if (i < maxRetries - 1) {
           await new Promise(resolve => setTimeout(resolve, delay * (i + 1)))
           continue
