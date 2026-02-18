@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentAdmin } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
@@ -7,10 +7,15 @@ async function attemptGetAdmin() {
   return await getCurrentAdmin()
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     console.log('=== AUTH ME CALLED ===')
     
+    // Log all cookies from request
+    const allCookies = request.cookies.getAll()
+    console.log('Cookies in request:', allCookies.map(c => c.name))
+    console.log('admin_session present:', !!request.cookies.get('admin_session'))
+
     // Retry logic
     let admin = null
     const maxRetries = 5

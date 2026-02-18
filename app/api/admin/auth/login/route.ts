@@ -4,8 +4,7 @@ import { login } from '@/lib/auth'
 export const dynamic = 'force-dynamic'
 
 async function attemptLogin(email: string, password: string) {
-  const user = await login(email, password)
-  return user
+  return await login(email, password)
 }
 
 export async function POST(request: NextRequest) {
@@ -14,7 +13,6 @@ export async function POST(request: NextRequest) {
     const { email, password } = body
 
     console.log('=== LOGIN ATTEMPT ===')
-    console.log('Email:', email)
 
     if (!email || !password) {
       return NextResponse.json(
@@ -25,7 +23,6 @@ export async function POST(request: NextRequest) {
 
     // Retry logic
     let user = null
-    let lastError: any
     const maxRetries = 5
     
     for (let i = 0; i < maxRetries; i++) {
@@ -34,7 +31,6 @@ export async function POST(request: NextRequest) {
         user = await attemptLogin(email, password)
         break
       } catch (error: any) {
-        lastError = error
         console.log(`Attempt ${i + 1} failed:`, error.message)
         
         if (error.message?.includes('MaxClientsInSessionMode') && i < maxRetries - 1) {
@@ -46,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
     
     if (!user) {
-      console.log('Login failed after retries')
+      console.log('Login failed: invalid credentials')
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -57,6 +53,7 @@ export async function POST(request: NextRequest) {
 
     // Create session
     const sessionId = `${user.id}-${Date.now()}`
+    console.log('Session ID:', sessionId.substring(0, 20) + '...')
 
     const response = NextResponse.json({
       success: true,
@@ -68,13 +65,20 @@ export async function POST(request: NextRequest) {
     })
 
     // Set cookie in response
-    response.cookies.set('admin_session', sessionId, {
+    const cookieOptions = {
       httpOnly: true,
       secure: true,
-      sameSite: 'lax',
+      sameSite: 'lax' as const,
       maxAge: 60 * 60 * 24 * 7,
       path: '/',
-    })
+    }
+    
+    console.log('Setting cookie with options:', cookieOptions)
+    response.cookies.set('admin_session', sessionId, cookieOptions)
+
+    // Verify cookie was set
+    const setCookie = response.cookies.get('admin_session')
+    console.log('Cookie in response:', setCookie ? 'SET' : 'NOT SET')
 
     console.log('=== LOGIN COMPLETE ===')
     
