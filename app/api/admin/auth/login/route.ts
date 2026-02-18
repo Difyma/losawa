@@ -9,7 +9,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { email, password } = body
 
-    console.log('Login attempt:', { email, hasPassword: !!password })
+    console.log('=== LOGIN ATTEMPT ===')
+    console.log('Email:', email)
 
     if (!email || !password) {
       return NextResponse.json(
@@ -28,23 +29,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('Login successful:', { userId: user.id, email: user.email })
+    console.log('Login successful for user:', user.id)
 
     // Create session
     const sessionId = `${user.id}-${Date.now()}`
     const cookieStore = await cookies()
     
-    console.log('Setting cookie:', { sessionId, secure: process.env.NODE_ENV === 'production' })
+    console.log('Setting cookie with params:', {
+      name: 'admin_session',
+      sessionId: sessionId.substring(0, 10) + '...',
+      secure: true,
+      sameSite: 'none',
+      path: '/',
+    })
     
     cookieStore.set('admin_session', sessionId, {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
       path: '/',
     })
 
-    return NextResponse.json({
+    console.log('Cookie set successfully')
+
+    const response = NextResponse.json({
       success: true,
       user: {
         id: user.id,
@@ -52,6 +61,18 @@ export async function POST(request: NextRequest) {
         role: user.role,
       },
     })
+
+    // Also set cookie in response for client-side
+    response.cookies.set('admin_session', sessionId, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 60 * 60 * 24 * 7,
+      path: '/',
+    })
+
+    console.log('=== LOGIN COMPLETE ===')
+    return response
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json(
