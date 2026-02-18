@@ -37,18 +37,26 @@ export default function AdminLayout({
 
   const checkAuth = async () => {
     try {
+      console.log('Checking auth...')
       const res = await fetch('/api/admin/auth/me', {
         credentials: 'include',
       })
+      
+      console.log('Auth check response:', res.status)
+      
       if (res.ok) {
+        const data = await res.json()
+        console.log('Auth successful:', data.user?.email)
         setIsAuthenticated(true)
       } else {
+        console.log('Auth failed, redirecting to login')
         setIsAuthenticated(false)
         if (pathname !== '/admin/login') {
           router.push('/admin/login')
         }
       }
     } catch (error) {
+      console.error('Auth check error:', error)
       setIsAuthenticated(false)
       if (pathname !== '/admin/login') {
         router.push('/admin/login')

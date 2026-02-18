@@ -53,7 +53,6 @@ export async function POST(request: NextRequest) {
 
     // Create session
     const sessionId = `${user.id}-${Date.now()}`
-    console.log('Session ID:', sessionId.substring(0, 20) + '...')
 
     const response = NextResponse.json({
       success: true,
@@ -64,22 +63,16 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Set cookie in response
-    const cookieOptions = {
+    // Set cookie - используем sameSite: 'none' для cross-site cookies
+    response.cookies.set('admin_session', sessionId, {
       httpOnly: true,
       secure: true,
-      sameSite: 'lax' as const,
+      sameSite: 'none',
       maxAge: 60 * 60 * 24 * 7,
       path: '/',
-    }
-    
-    console.log('Setting cookie with options:', cookieOptions)
-    response.cookies.set('admin_session', sessionId, cookieOptions)
+    })
 
-    // Verify cookie was set
-    const setCookie = response.cookies.get('admin_session')
-    console.log('Cookie in response:', setCookie ? 'SET' : 'NOT SET')
-
+    console.log('Cookie set with sameSite: none')
     console.log('=== LOGIN COMPLETE ===')
     
     return response

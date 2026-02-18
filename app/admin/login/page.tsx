@@ -17,6 +17,7 @@ export default function AdminLogin() {
     setLoading(true)
 
     try {
+      console.log('Attempting login...')
       const res = await fetch('/api/admin/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -24,15 +25,21 @@ export default function AdminLogin() {
         body: JSON.stringify({ email, password }),
       })
 
+      console.log('Login response status:', res.status)
       const data = await res.json()
+      console.log('Login response:', data)
 
       if (res.ok) {
+        console.log('Login successful, redirecting...')
+        // Добавляем небольшую задержку чтобы кука успела установиться
+        await new Promise(resolve => setTimeout(resolve, 100))
         router.push('/admin/dashboard')
         router.refresh()
       } else {
         setError(data.error || 'Invalid credentials')
       }
     } catch (err) {
+      console.error('Login error:', err)
       setError('Failed to login')
     } finally {
       setLoading(false)
