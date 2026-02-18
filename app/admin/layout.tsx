@@ -10,7 +10,8 @@ import {
   ShoppingCart, 
   LogOut,
   Menu,
-  X
+  X,
+  Image as ImageIcon
 } from 'lucide-react'
 
 const navigation = [
@@ -18,6 +19,7 @@ const navigation = [
   { name: 'Products', href: '/admin/products', icon: Package },
   { name: 'Categories', href: '/admin/categories', icon: FolderTree },
   { name: 'Collections', href: '/admin/collections', icon: Layers },
+  { name: 'Banners', href: '/admin/banners', icon: ImageIcon },
   { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
 ]
 
