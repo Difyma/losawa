@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "dev:clean": "rm -rf .next && next dev -p 3000",
+    "dev:fresh": "rm -rf .next node_modules/.cache && next dev -p 3000",
     "dev:alt": "next dev -p 3001",
     "dev:kill": "lsof -ti:3000 | xargs kill -9 2>/dev/null; npm run dev",
     "build": "next build",

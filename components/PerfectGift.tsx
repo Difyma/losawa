@@ -16,7 +16,7 @@ const giftOptions: GiftOption[] = [
   },
   {
     title: 'Most Popular Jewelry',
-    image: '/categories/popular.jpg',
+    image: '/categories/rings.jpg',
     link: '#',
   },
   {
@@ -47,7 +47,7 @@ export default function PerfectGift() {
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement
-                    target.src = '/categories/default.jpg'
+                    target.src = '/categories/rings.jpg'
                   }}
                 />
               </div>

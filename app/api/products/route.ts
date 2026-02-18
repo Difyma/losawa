@@ -62,9 +62,11 @@ export async function GET(request: NextRequest) {
     })
 
     // Transform products to match frontend interface
+    type ProductWithRelations = (typeof products)[number]
+
     const transformedProducts = products
-      .filter((product) => product && product.id && product.category)
-      .map((product) => ({
+      .filter((product: ProductWithRelations) => product && product.id && product.category)
+      .map((product: ProductWithRelations) => ({
         id: product.id,
         name: product.name,
         price: product.price,

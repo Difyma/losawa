@@ -29,7 +29,7 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
     }
   }, [user, isOpen, onClose])
 
-  // Handle Escape key
+  // Handle Escape key and body overflow
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
@@ -38,11 +38,14 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
     }
     if (isOpen) {
       document.addEventListener('keydown', handleEscape)
+      // Store original overflow value
+      const originalOverflow = document.body.style.overflow
       document.body.style.overflow = 'hidden'
-    }
-    return () => {
-      document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'unset'
+      return () => {
+        document.removeEventListener('keydown', handleEscape)
+        // Restore original overflow value
+        document.body.style.overflow = originalOverflow || ''
+      }
     }
   }, [isOpen, onClose])
 

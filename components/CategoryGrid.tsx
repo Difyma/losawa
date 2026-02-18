@@ -26,7 +26,7 @@ const categories: Category[] = [
   },
   {
     name: 'Earrings',
-    image: '/categories/earrings.jpg',
+    image: '/categories/rings.jpg',
     slug: 'earrings',
     count: 7550,
   },
@@ -71,7 +71,7 @@ export default function CategoryGrid() {
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement
-                    target.src = '/categories/default.jpg'
+                    target.src = '/categories/rings.jpg'
                   }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />

@@ -21,6 +21,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   
   useEffect(() => {
+    let subscription: { unsubscribe: () => void } | null = null
+
     // Check if Supabase env vars are available
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       console.warn('Supabase environment variables are not set')
@@ -45,13 +47,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Listen for auth changes
       const {
-        data: { subscription },
+        data: { subscription: authSubscription },
       } = supabase.auth.onAuthStateChange((_event, session) => {
         setUser(session?.user ?? null)
         setLoading(false)
       })
 
-      return () => subscription.unsubscribe()
+      subscription = authSubscription
+
+      return () => {
+        if (subscription) {
+          subscription.unsubscribe()
+        }
+      }
     } catch (error) {
       console.error('Error initializing Supabase:', error)
       setLoading(false)
