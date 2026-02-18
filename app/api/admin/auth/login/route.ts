@@ -54,16 +54,25 @@ export async function POST(request: NextRequest) {
     // Create session
     const sessionId = `${user.id}-${Date.now()}`
 
-    const response = NextResponse.json({
-      success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
+    // Создаём response с CORS заголовками
+    const response = NextResponse.json(
+      {
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+        },
       },
-    })
+      {
+        headers: {
+          'Access-Control-Allow-Credentials': 'true',
+          'Access-Control-Allow-Origin': '*',
+        },
+      }
+    )
 
-    // Set cookie - используем sameSite: 'none' для cross-site cookies
+    // Set cookie
     response.cookies.set('admin_session', sessionId, {
       httpOnly: true,
       secure: true,
@@ -72,7 +81,7 @@ export async function POST(request: NextRequest) {
       path: '/',
     })
 
-    console.log('Cookie set with sameSite: none')
+    console.log('Cookie set')
     console.log('=== LOGIN COMPLETE ===')
     
     return response
@@ -83,4 +92,16 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
+}
+
+// OPTIONS handler for CORS preflight
+export async function OPTIONS() {
+  return NextResponse.json({}, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Credentials': 'true',
+    },
+  })
 }

@@ -10,11 +10,7 @@ async function attemptGetAdmin() {
 export async function GET(request: NextRequest) {
   try {
     console.log('=== AUTH ME CALLED ===')
-    
-    // Log all cookies from request
-    const allCookies = request.cookies.getAll()
-    console.log('Cookies in request:', allCookies.map(c => c.name))
-    console.log('admin_session present:', !!request.cookies.get('admin_session'))
+    console.log('Cookies received:', request.cookies.getAll().map(c => c.name))
 
     // Retry logic
     let admin = null
@@ -40,25 +36,57 @@ export async function GET(request: NextRequest) {
       console.log('No admin found - returning 401')
       return NextResponse.json(
         { error: 'Not authenticated' },
-        { status: 401 }
+        { 
+          status: 401,
+          headers: {
+            'Access-Control-Allow-Credentials': 'true',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
       )
     }
 
     console.log('Admin found:', admin.email)
     console.log('=== AUTH ME COMPLETE ===')
 
-    return NextResponse.json({
-      user: {
-        id: admin.id,
-        email: admin.email,
-        role: admin.role,
+    return NextResponse.json(
+      {
+        user: {
+          id: admin.id,
+          email: admin.email,
+          role: admin.role,
+        },
       },
-    })
+      {
+        headers: {
+          'Access-Control-Allow-Credentials': 'true',
+          'Access-Control-Allow-Origin': '*',
+        },
+      }
+    )
   } catch (error) {
     console.error('Auth check error:', error)
     return NextResponse.json(
       { error: 'Failed to check authentication' },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Credentials': 'true',
+          'Access-Control-Allow-Origin': '*',
+        },
+      }
     )
   }
+}
+
+// OPTIONS handler for CORS preflight
+export async function OPTIONS() {
+  return NextResponse.json({}, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Cookie',
+      'Access-Control-Allow-Credentials': 'true',
+    },
+  })
 }
