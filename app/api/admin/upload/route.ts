@@ -102,4 +102,3 @@ export async function POST(request: NextRequest) {
 
 // Increase body size limit for App Router
 export const maxDuration = 60
-export const dynamic = 'force-dynamic'
