@@ -7,7 +7,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Category {
@@ -41,7 +42,7 @@ model Product {
   image       String
   material    String
   description String?
-  isActive    Boolean   @default(true) // Для скрытия товаров без удаления
+  isActive    Boolean   @default(true)
   dateAdded   DateTime  @default(now())
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -60,26 +61,26 @@ model Product {
 }
 
 model Order {
-  id          String      @id @default(cuid())
+  id           String      @id @default(cuid())
   customerName String
-  email       String
-  phone       String?
-  address     String
-  city        String
-  country     String      @default("USA")
-  postalCode  String?
-  status      String      @default("pending") // pending, processing, shipped, delivered, cancelled
-  total       Float
-  notes       String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  items       OrderItem[]
+  email        String
+  phone        String?
+  address      String
+  city         String
+  country      String      @default("USA")
+  postalCode   String?
+  status       String      @default("pending")
+  total        Float
+  notes        String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  items        OrderItem[]
 }
 
 model OrderItem {
   id        String   @id @default(cuid())
-  quantity Int      @default(1)
-  price    Float
+  quantity  Int      @default(1)
+  price     Float
   createdAt DateTime @default(now())
   
   orderId   String
@@ -93,10 +94,10 @@ model OrderItem {
 }
 
 model AdminUser {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  passwordHash  String
-  role          String   @default("admin") // admin, manager
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         String   @default("admin")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
