@@ -1,31 +1,40 @@
 import { NextResponse } from 'next/server'
 import { getCurrentAdmin } from '@/lib/auth'
-import { cookies } from 'next/headers'
 
 export const dynamic = 'force-dynamic'
+
+async function attemptGetAdmin() {
+  return await getCurrentAdmin()
+}
 
 export async function GET() {
   try {
     console.log('=== AUTH ME CALLED ===')
     
-    const cookieStore = await cookies()
-    const allCookies = cookieStore.getAll()
+    // Retry logic
+    let admin = null
+    const maxRetries = 5
     
-    console.log('All cookies received:', allCookies.map(c => ({ name: c.name, value: c.value.substring(0, 10) + '...' })))
-    
-    const adminSession = cookieStore.get('admin_session')
-    console.log('admin_session cookie:', adminSession ? 'FOUND' : 'NOT FOUND')
-    
-    if (adminSession) {
-      console.log('Session value:', adminSession.value.substring(0, 20) + '...')
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        console.log(`Auth check attempt ${i + 1}/${maxRetries}`)
+        admin = await attemptGetAdmin()
+        break
+      } catch (error: any) {
+        console.log(`Attempt ${i + 1} failed:`, error.message)
+        
+        if (error.message?.includes('MaxClientsInSessionMode') && i < maxRetries - 1) {
+          await new Promise(resolve => setTimeout(resolve, 2000 * (i + 1)))
+          continue
+        }
+        throw error
+      }
     }
-    
-    const admin = await getCurrentAdmin()
     
     if (!admin) {
       console.log('No admin found - returning 401')
       return NextResponse.json(
-        { error: 'Not authenticated', cookiesReceived: allCookies.map(c => c.name) },
+        { error: 'Not authenticated' },
         { status: 401 }
       )
     }

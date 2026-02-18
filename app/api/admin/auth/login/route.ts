@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { login } from '@/lib/auth'
-import { cookies } from 'next/headers'
 
 export const dynamic = 'force-dynamic'
+
+async function attemptLogin(email: string, password: string) {
+  const user = await login(email, password)
+  return user
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,10 +23,30 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const user = await login(email, password)
+    // Retry logic
+    let user = null
+    let lastError: any
+    const maxRetries = 5
+    
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        console.log(`Login attempt ${i + 1}/${maxRetries}`)
+        user = await attemptLogin(email, password)
+        break
+      } catch (error: any) {
+        lastError = error
+        console.log(`Attempt ${i + 1} failed:`, error.message)
+        
+        if (error.message?.includes('MaxClientsInSessionMode') && i < maxRetries - 1) {
+          await new Promise(resolve => setTimeout(resolve, 2000 * (i + 1)))
+          continue
+        }
+        throw error
+      }
+    }
     
     if (!user) {
-      console.log('Login failed: invalid credentials')
+      console.log('Login failed after retries')
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -33,10 +57,6 @@ export async function POST(request: NextRequest) {
 
     // Create session
     const sessionId = `${user.id}-${Date.now()}`
-    
-    console.log('Setting cookie with params:', {
-      sessionId: sessionId.substring(0, 10) + '...',
-    })
 
     const response = NextResponse.json({
       success: true,
@@ -56,7 +76,6 @@ export async function POST(request: NextRequest) {
       path: '/',
     })
 
-    console.log('Cookie set in response')
     console.log('=== LOGIN COMPLETE ===')
     
     return response
