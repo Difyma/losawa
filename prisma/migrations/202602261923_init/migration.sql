@@ -30,6 +30,7 @@ CREATE TABLE "Product" (
     "image" TEXT NOT NULL,
     "material" TEXT NOT NULL,
     "description" TEXT,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
     "dateAdded" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
@@ -68,6 +69,29 @@ CREATE TABLE "OrderItem" (
     CONSTRAINT "OrderItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+-- CreateTable
+CREATE TABLE "AdminUser" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "email" TEXT NOT NULL,
+    "passwordHash" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'admin',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "Banner" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "title" TEXT NOT NULL,
+    "subtitle" TEXT,
+    "image" TEXT NOT NULL,
+    "link" TEXT,
+    "order" INTEGER NOT NULL DEFAULT 0,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Category_slug_key" ON "Category"("slug");
 
@@ -81,7 +105,19 @@ CREATE INDEX "Product_categoryId_idx" ON "Product"("categoryId");
 CREATE INDEX "Product_collectionId_idx" ON "Product"("collectionId");
 
 -- CreateIndex
+CREATE INDEX "Product_isActive_idx" ON "Product"("isActive");
+
+-- CreateIndex
 CREATE INDEX "OrderItem_orderId_idx" ON "OrderItem"("orderId");
 
 -- CreateIndex
 CREATE INDEX "OrderItem_productId_idx" ON "OrderItem"("productId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AdminUser_email_key" ON "AdminUser"("email");
+
+-- CreateIndex
+CREATE INDEX "Banner_isActive_idx" ON "Banner"("isActive");
+
+-- CreateIndex
+CREATE INDEX "Banner_order_idx" ON "Banner"("order");

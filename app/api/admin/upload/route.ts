@@ -4,11 +4,21 @@ import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
-// Create Supabase client with service role
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-)
+// Create Supabase client with service role (lazy initialization)
+let supabaseInstance: ReturnType<typeof createClient> | null = null
+function getSupabase() {
+  if (!supabaseInstance) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+    
+    if (!url || !key || key === 'placeholder-service-role-key') {
+      throw new Error('Supabase configuration missing')
+    }
+    
+    supabaseInstance = createClient(url, key)
+  }
+  return supabaseInstance
+}
 
 export async function POST(request: NextRequest) {
   console.log('=== UPLOAD START ===')
@@ -69,6 +79,7 @@ export async function POST(request: NextRequest) {
 
     console.log('Uploading to Supabase...')
     // Upload to Supabase Storage
+    const supabase = getSupabase()
     const { data, error } = await supabase
       .storage
       .from('products')
@@ -97,7 +108,7 @@ export async function POST(request: NextRequest) {
     console.log('Upload successful:', data)
 
     // Get public URL
-    const { data: { publicUrl } } = supabase
+    const { data: { publicUrl } } = getSupabase()
       .storage
       .from('products')
       .getPublicUrl(filename)

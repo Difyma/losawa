@@ -1,11 +1,30 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight, Minus, Plus, Heart, Share2, Truck, Shield, RefreshCw } from 'lucide-react'
-import { products } from '@/data/products'
 import Header from '@/components/Header'
+
+interface Product {
+  id: number
+  name: string
+  price: number
+  image: string
+  material: string
+  description?: string
+  dateAdded: string
+  category: {
+    id: string
+    slug: string
+    name: string
+  }
+  collection?: {
+    id: string
+    slug: string
+    name: string
+  }
+}
 
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat('en-US', {
@@ -22,20 +41,74 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1)
   const [selectedImage, setSelectedImage] = useState(0)
   const [isWishlisted, setIsWishlisted] = useState(false)
+  const [product, setProduct] = useState<Product | null>(null)
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const product = products.find(p => p.id === productId)
+  // Загружаем товар из API
+  useEffect(() => {
+    async function fetchProduct() {
+      try {
+        setLoading(true)
+        
+        // Загружаем конкретный товар
+        const res = await fetch(`/api/products/${productId}`)
+        if (!res.ok) {
+          if (res.status === 404) {
+            setError('Product not found')
+          } else {
+            setError('Failed to load product')
+          }
+          setLoading(false)
+          return
+        }
+        
+        const productData = await res.json()
+        setProduct(productData)
+        
+        // Загружаем все товары для поиска похожих
+        const allRes = await fetch('/api/products')
+        if (allRes.ok) {
+          const allProducts = await allRes.json()
+          const related = allProducts
+            .filter((p: Product) => p.category?.slug === productData.category?.slug && p.id !== productId)
+            .slice(0, 4)
+          setRelatedProducts(related)
+        }
+        
+        setLoading(false)
+      } catch (err) {
+        setError('Failed to load product')
+        setLoading(false)
+      }
+    }
+    
+    if (productId) {
+      fetchProduct()
+    }
+  }, [productId])
 
-  // Get related products from same category
-  const relatedProducts = products
-    .filter(p => p.category === product?.category && p.id !== productId)
-    .slice(0, 4)
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-white">
+        <Header cartCount={0} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto"></div>
+          </div>
+        </div>
+      </main>
+    )
+  }
 
-  if (!product) {
+  if (error || !product) {
     return (
       <main className="min-h-screen bg-white">
         <Header cartCount={cartItems.length} />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Product not found</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{error || 'Product not found'}</h1>
           <Link href="/" className="text-gray-600 hover:text-gray-900 underline">
             Return to home
           </Link>
@@ -66,10 +139,14 @@ export default function ProductPage() {
           <nav className="flex items-center text-sm text-gray-500">
             <Link href="/" className="hover:text-gray-900">Home</Link>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <Link href={`/category/${product.category}`} className="hover:text-gray-900 capitalize">
-              {product.category}
-            </Link>
-            <ChevronRight className="w-4 h-4 mx-2" />
+            {product.category && (
+              <>
+                <Link href={`/category/${product.category.slug}`} className="hover:text-gray-900">
+                  {product.category.name}
+                </Link>
+                <ChevronRight className="w-4 h-4 mx-2" />
+              </>
+            )}
             <span className="text-gray-900">{product.name}</span>
           </nav>
         </div>
@@ -88,7 +165,7 @@ export default function ProductPage() {
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement
-                  target.src = '/products/1.jpg' // Fallback to first product image
+                  target.src = '/products/1.jpg'
                 }}
               />
             </div>
@@ -108,7 +185,7 @@ export default function ProductPage() {
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement
-                      target.src = '/products/1.jpg' // Fallback to first product image
+                      target.src = '/products/1.jpg'
                     }}
                   />
                 </button>
@@ -120,7 +197,7 @@ export default function ProductPage() {
           <div className="flex flex-col">
             {/* Collection Badge */}
             <span className="text-sm text-gray-500 uppercase tracking-wide mb-2">
-              {product.material.split(',')[0]}
+              {product.collection?.name || product.material.split(',')[0]}
             </span>
 
             {/* Title */}
@@ -226,11 +303,15 @@ export default function ProductPage() {
                       src={relatedProduct.image}
                       alt={relatedProduct.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = '/products/1.jpg'
+                      }}
                     />
                   </div>
                   <div className="p-4">
                     <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-                      {relatedProduct.category}
+                      {relatedProduct.category?.name}
                     </p>
                     <h3 className="text-base font-medium text-gray-900 mb-2">
                       {relatedProduct.name}
