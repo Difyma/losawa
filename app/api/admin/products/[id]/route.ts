@@ -64,6 +64,14 @@ export async function PUT(
       additionalImages,
     } = body
 
+    // Валидация количества изображений (максимум 4 дополнительных)
+    if (additionalImages !== undefined && additionalImages.length > 4) {
+      return NextResponse.json(
+        { error: 'Maximum 4 additional images allowed' },
+        { status: 400 }
+      )
+    }
+
     // Update product basic info
     const product = await prisma.product.update({
       where: { id: parseInt(params.id) },

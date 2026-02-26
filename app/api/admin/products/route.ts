@@ -81,6 +81,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Валидация количества изображений (максимум 4 дополнительных + 1 главное = 5)
+    if (additionalImages.length > 4) {
+      return NextResponse.json(
+        { error: 'Maximum 4 additional images allowed' },
+        { status: 400 }
+      )
+    }
+
     // Create product with images in transaction
     const product = await prisma.$transaction(async (tx) => {
       // Create product

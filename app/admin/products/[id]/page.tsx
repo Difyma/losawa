@@ -11,6 +11,8 @@ interface ProductImage {
   order: number
 }
 
+const MAX_ADDITIONAL_IMAGES = 4 // Максимум 4 дополнительных фото (итого 5 с главным)
+
 export default function EditProductPage() {
   const router = useRouter()
   const params = useParams()
@@ -365,20 +367,27 @@ export default function EditProductPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Additional Images
+              <span className={`ml-2 text-sm ${additionalImages.length >= MAX_ADDITIONAL_IMAGES ? 'text-red-500' : 'text-gray-500'}`}>
+                ({additionalImages.length}/{MAX_ADDITIONAL_IMAGES})
+              </span>
             </label>
             <div className="space-y-3">
               {/* Upload button */}
-              <label className="inline-flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
-                <Upload className="w-5 h-5 mr-2" />
-                {uploadingAdditional ? 'Uploading...' : 'Add Images'}
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleAdditionalImageUpload}
-                  className="hidden"
-                />
-              </label>
+              {additionalImages.length < MAX_ADDITIONAL_IMAGES ? (
+                <label className="inline-flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
+                  <Upload className="w-5 h-5 mr-2" />
+                  {uploadingAdditional ? 'Uploading...' : 'Add Images'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleAdditionalImageUpload}
+                    className="hidden"
+                  />
+                </label>
+              ) : (
+                <p className="text-sm text-red-500">Maximum {MAX_ADDITIONAL_IMAGES} additional images reached</p>
+              )}
 
               {/* Images list */}
               {additionalImages.length > 0 && (

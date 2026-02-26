@@ -10,6 +10,8 @@ interface ProductImage {
   order: number
 }
 
+const MAX_ADDITIONAL_IMAGES = 4 // Максимум 4 дополнительных фото (итого 5 с главным)
+
 export default function NewProductPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -100,11 +102,27 @@ export default function NewProductPage() {
     const files = e.target.files
     if (!files || files.length === 0) return
 
+    // Проверка на максимальное количество
+    const currentCount = additionalImages.length
+    const availableSlots = MAX_ADDITIONAL_IMAGES - currentCount
+    
+    if (availableSlots <= 0) {
+      alert(`Maximum ${MAX_ADDITIONAL_IMAGES} additional images allowed`)
+      return
+    }
+
+    // Ограничиваем количество загружаемых файлов
+    const filesToUpload = Array.from(files).slice(0, availableSlots)
+    
+    if (files.length > availableSlots) {
+      alert(`Only ${availableSlots} image(s) will be uploaded (maximum ${MAX_ADDITIONAL_IMAGES} allowed)`)
+    }
+
     setUploadingAdditional(true)
     try {
       const newImages: ProductImage[] = []
       
-      for (const file of Array.from(files)) {
+      for (const file of filesToUpload) {
         if (file.size > 4 * 1024 * 1024) {
           alert(`File ${file.name} too large. Maximum size is 4MB.`)
           continue
@@ -122,7 +140,7 @@ export default function NewProductPage() {
         if (res.ok) {
           newImages.push({
             url: data.path,
-            order: additionalImages.length + newImages.length,
+            order: currentCount + newImages.length,
           })
         }
       }
@@ -320,21 +338,28 @@ export default function NewProductPage() {
           {/* Additional Images */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Additional Images
+              Additional Images 
+              <span className={`ml-2 text-sm ${additionalImages.length >= MAX_ADDITIONAL_IMAGES ? 'text-red-500' : 'text-gray-500'}`}>
+                ({additionalImages.length}/{MAX_ADDITIONAL_IMAGES})
+              </span>
             </label>
             <div className="space-y-3">
               {/* Upload button */}
-              <label className="inline-flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
-                <Upload className="w-5 h-5 mr-2" />
-                {uploadingAdditional ? 'Uploading...' : 'Add Images'}
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleAdditionalImageUpload}
-                  className="hidden"
-                />
-              </label>
+              {additionalImages.length < MAX_ADDITIONAL_IMAGES ? (
+                <label className="inline-flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
+                  <Upload className="w-5 h-5 mr-2" />
+                  {uploadingAdditional ? 'Uploading...' : 'Add Images'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleAdditionalImageUpload}
+                    className="hidden"
+                  />
+                </label>
+              ) : (
+                <p className="text-sm text-red-500">Maximum {MAX_ADDITIONAL_IMAGES} additional images reached</p>
+              )}
 
               {/* Images list */}
               {additionalImages.length > 0 && (
