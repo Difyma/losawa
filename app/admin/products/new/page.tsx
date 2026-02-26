@@ -2,8 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Upload } from 'lucide-react'
+import { ArrowLeft, Upload, X } from 'lucide-react'
 import Link from 'next/link'
+
+interface ProductImage {
+  url: string
+  order: number
+}
 
 export default function NewProductPage() {
   const router = useRouter()
@@ -20,7 +25,9 @@ export default function NewProductPage() {
     image: '',
     isActive: true,
   })
+  const [additionalImages, setAdditionalImages] = useState<ProductImage[]>([])
   const [uploading, setUploading] = useState(false)
+  const [uploadingAdditional, setUploadingAdditional] = useState(false)
 
   useEffect(() => {
     fetchCategories()
@@ -62,16 +69,11 @@ export default function NewProductPage() {
       const uploadFormData = new FormData()
       uploadFormData.append('file', file)
 
-      console.log('Uploading file:', file.name, 'Size:', (file.size / 1024 / 1024).toFixed(2), 'MB')
-
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
         body: uploadFormData,
       })
 
-      console.log('Upload response status:', res.status)
-
-      // Check if response is JSON
       const contentType = res.headers.get('content-type')
       if (!contentType || !contentType.includes('application/json')) {
         const text = await res.text()
@@ -81,8 +83,6 @@ export default function NewProductPage() {
       }
 
       const data = await res.json()
-      console.log('Upload response:', data)
-
       if (res.ok) {
         setFormData((prev) => ({ ...prev, image: data.path }))
       } else {
@@ -90,10 +90,54 @@ export default function NewProductPage() {
       }
     } catch (error) {
       console.error('Error uploading image:', error)
-      alert('Failed to upload image. Please check console for details.')
+      alert('Failed to upload image')
     } finally {
       setUploading(false)
     }
+  }
+
+  const handleAdditionalImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    setUploadingAdditional(true)
+    try {
+      const newImages: ProductImage[] = []
+      
+      for (const file of Array.from(files)) {
+        if (file.size > 4 * 1024 * 1024) {
+          alert(`File ${file.name} too large. Maximum size is 4MB.`)
+          continue
+        }
+
+        const uploadFormData = new FormData()
+        uploadFormData.append('file', file)
+
+        const res = await fetch('/api/admin/upload', {
+          method: 'POST',
+          body: uploadFormData,
+        })
+
+        const data = await res.json()
+        if (res.ok) {
+          newImages.push({
+            url: data.path,
+            order: additionalImages.length + newImages.length,
+          })
+        }
+      }
+      
+      setAdditionalImages((prev) => [...prev, ...newImages])
+    } catch (error) {
+      console.error('Error uploading images:', error)
+      alert('Failed to upload some images')
+    } finally {
+      setUploadingAdditional(false)
+    }
+  }
+
+  const removeAdditionalImage = (index: number) => {
+    setAdditionalImages((prev) => prev.filter((_, i) => i !== index))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -104,7 +148,10 @@ export default function NewProductPage() {
       const res = await fetch('/api/admin/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          additionalImages,
+        }),
       })
 
       if (res.ok) {
@@ -241,9 +288,10 @@ export default function NewProductPage() {
             />
           </div>
 
+          {/* Main Image */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Product Image *
+              Main Product Image *
             </label>
             <div className="flex items-center space-x-4">
               <label className="flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
@@ -263,7 +311,61 @@ export default function NewProductPage() {
                     alt="Preview"
                     className="w-16 h-16 object-cover rounded-lg"
                   />
-                  <span className="text-sm text-gray-600">{formData.image}</span>
+                  <span className="text-sm text-gray-600 truncate max-w-xs">{formData.image}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Additional Images */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Additional Images
+            </label>
+            <div className="space-y-3">
+              {/* Upload button */}
+              <label className="inline-flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
+                <Upload className="w-5 h-5 mr-2" />
+                {uploadingAdditional ? 'Uploading...' : 'Add Images'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleAdditionalImageUpload}
+                  className="hidden"
+                />
+              </label>
+
+              {/* Images list */}
+              {additionalImages.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                  {additionalImages.map((img, index) => (
+                    <div key={index} className="relative group">
+                      <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
+                        <img
+                          src={img.url}
+                          alt={`Additional ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      
+                      {/* Controls */}
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          type="button"
+                          onClick={() => removeAdditionalImage(index)}
+                          className="p-1 bg-white rounded shadow hover:bg-red-50 text-red-600"
+                          title="Remove"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      
+                      <div className="text-xs text-gray-500 mt-1 text-center">
+                        Image {index + 2}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

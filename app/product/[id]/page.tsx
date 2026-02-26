@@ -11,6 +11,7 @@ interface Product {
   name: string
   price: number
   image: string
+  images: string[]  // Массив всех изображений
   material: string
   description?: string
   dateAdded: string
@@ -126,8 +127,10 @@ export default function ProductPage() {
   const incrementQuantity = () => setQuantity(prev => prev + 1)
   const decrementQuantity = () => setQuantity(prev => prev > 1 ? prev - 1 : 1)
 
-  // Generate additional images (using same image for now)
-  const productImages = [product.image, product.image, product.image, product.image]
+  // Use images array from API, fallback to single image
+  const productImages = product.images && product.images.length > 0 
+    ? product.images 
+    : [product.image]
 
   return (
     <main className="min-h-screen bg-white">

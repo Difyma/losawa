@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
       categoryId,
       collectionId,
       isActive = true,
+      additionalImages = [],
     } = body
 
     if (!name || !price || !image || !material || !categoryId) {
@@ -80,21 +81,44 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const product = await prisma.product.create({
-      data: {
-        name,
-        price: parseFloat(price),
-        image,
-        material,
-        description,
-        categoryId,
-        collectionId: collectionId || null,
-        isActive,
-      },
-      include: {
-        category: true,
-        collection: true,
-      },
+    // Create product with images in transaction
+    const product = await prisma.$transaction(async (tx) => {
+      // Create product
+      const newProduct = await tx.product.create({
+        data: {
+          name,
+          price: parseFloat(price),
+          image,
+          material,
+          description,
+          categoryId,
+          collectionId: collectionId || null,
+          isActive,
+        },
+      })
+
+      // Create additional images
+      if (additionalImages.length > 0) {
+        await tx.productImage.createMany({
+          data: additionalImages.map((img: any, index: number) => ({
+            url: img.url,
+            order: index,
+            productId: newProduct.id,
+          }))
+        })
+      }
+
+      // Return product with relations
+      return tx.product.findUnique({
+        where: { id: newProduct.id },
+        include: {
+          category: true,
+          collection: true,
+          images: {
+            orderBy: { order: 'asc' }
+          }
+        },
+      })
     })
 
     return NextResponse.json(product, { status: 201 })

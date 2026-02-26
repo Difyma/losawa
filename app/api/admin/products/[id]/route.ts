@@ -17,6 +17,9 @@ export async function GET(
       include: {
         category: true,
         collection: true,
+        images: {
+          orderBy: { order: 'asc' }
+        }
       },
     })
 
@@ -58,8 +61,10 @@ export async function PUT(
       categoryId,
       collectionId,
       isActive,
+      additionalImages,
     } = body
 
+    // Update product basic info
     const product = await prisma.product.update({
       where: { id: parseInt(params.id) },
       data: {
@@ -72,13 +77,40 @@ export async function PUT(
         ...(collectionId !== undefined && { collectionId: collectionId || null }),
         ...(isActive !== undefined && { isActive }),
       },
+    })
+
+    // Update additional images if provided
+    if (additionalImages !== undefined) {
+      // Delete existing images
+      await prisma.productImage.deleteMany({
+        where: { productId: parseInt(params.id) }
+      })
+
+      // Create new images
+      if (additionalImages.length > 0) {
+        await prisma.productImage.createMany({
+          data: additionalImages.map((img: any, index: number) => ({
+            url: img.url,
+            order: index,
+            productId: parseInt(params.id),
+          }))
+        })
+      }
+    }
+
+    // Return updated product with images
+    const updatedProduct = await prisma.product.findUnique({
+      where: { id: parseInt(params.id) },
       include: {
         category: true,
         collection: true,
+        images: {
+          orderBy: { order: 'asc' }
+        }
       },
     })
 
-    return NextResponse.json(product)
+    return NextResponse.json(updatedProduct)
   } catch (error: any) {
     if (error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

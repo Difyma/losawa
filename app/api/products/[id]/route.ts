@@ -11,6 +11,9 @@ export async function GET(
       include: {
         category: true,
         collection: true,
+        images: {
+          orderBy: { order: 'asc' }
+        }
       },
     })
 
@@ -21,12 +24,19 @@ export async function GET(
       )
     }
 
+    // Build images array: main image + additional images
+    const images = [product.image]
+    if (product.images && product.images.length > 0) {
+      images.push(...product.images.map(img => img.url))
+    }
+
     // Transform product to match frontend interface
     const transformedProduct = {
       id: product.id,
       name: product.name,
       price: product.price,
       image: product.image,
+      images: images,
       material: product.material,
       description: product.description,
       dateAdded: product.dateAdded.toISOString(),

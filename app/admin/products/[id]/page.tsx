@@ -2,8 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft, Upload } from 'lucide-react'
+import { ArrowLeft, Upload, X, GripVertical } from 'lucide-react'
 import Link from 'next/link'
+
+interface ProductImage {
+  id?: number
+  url: string
+  order: number
+}
 
 export default function EditProductPage() {
   const router = useRouter()
@@ -23,7 +29,9 @@ export default function EditProductPage() {
     image: '',
     isActive: true,
   })
+  const [additionalImages, setAdditionalImages] = useState<ProductImage[]>([])
   const [uploading, setUploading] = useState(false)
+  const [uploadingAdditional, setUploadingAdditional] = useState(false)
 
   useEffect(() => {
     fetchProduct()
@@ -46,6 +54,15 @@ export default function EditProductPage() {
           image: product.image,
           isActive: product.isActive,
         })
+        // Загружаем дополнительные изображения
+        if (product.images && product.images.length > 1) {
+          setAdditionalImages(
+            product.images.slice(1).map((url: string, index: number) => ({
+              url,
+              order: index,
+            }))
+          )
+        }
       }
     } catch (error) {
       console.error('Error fetching product:', error)
@@ -102,6 +119,61 @@ export default function EditProductPage() {
     }
   }
 
+  const handleAdditionalImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    setUploadingAdditional(true)
+    try {
+      const newImages: ProductImage[] = []
+      
+      for (const file of Array.from(files)) {
+        const uploadFormData = new FormData()
+        uploadFormData.append('file', file)
+
+        const res = await fetch('/api/admin/upload', {
+          method: 'POST',
+          body: uploadFormData,
+        })
+
+        const data = await res.json()
+        if (res.ok) {
+          newImages.push({
+            url: data.path,
+            order: additionalImages.length + newImages.length,
+          })
+        }
+      }
+      
+      setAdditionalImages((prev) => [...prev, ...newImages])
+    } catch (error) {
+      console.error('Error uploading images:', error)
+      alert('Failed to upload some images')
+    } finally {
+      setUploadingAdditional(false)
+    }
+  }
+
+  const removeAdditionalImage = (index: number) => {
+    setAdditionalImages((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const moveImage = (index: number, direction: 'up' | 'down') => {
+    if (direction === 'up' && index === 0) return
+    if (direction === 'down' && index === additionalImages.length - 1) return
+    
+    const newImages = [...additionalImages]
+    const newIndex = direction === 'up' ? index - 1 : index + 1
+    ;[newImages[index], newImages[newIndex]] = [newImages[newIndex], newImages[index]]
+    
+    // Обновляем order
+    newImages.forEach((img, i) => {
+      img.order = i
+    })
+    
+    setAdditionalImages(newImages)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
@@ -110,7 +182,10 @@ export default function EditProductPage() {
       const res = await fetch(`/api/admin/products/${productId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          additionalImages,
+        }),
       })
 
       if (res.ok) {
@@ -257,9 +332,10 @@ export default function EditProductPage() {
             />
           </div>
 
+          {/* Main Image */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Product Image *
+              Main Product Image *
             </label>
             <div className="flex items-center space-x-4">
               <label className="flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
@@ -279,7 +355,70 @@ export default function EditProductPage() {
                     alt="Preview"
                     className="w-16 h-16 object-cover rounded-lg"
                   />
-                  <span className="text-sm text-gray-600">{formData.image}</span>
+                  <span className="text-sm text-gray-600 truncate max-w-xs">{formData.image}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Additional Images */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Additional Images
+            </label>
+            <div className="space-y-3">
+              {/* Upload button */}
+              <label className="inline-flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
+                <Upload className="w-5 h-5 mr-2" />
+                {uploadingAdditional ? 'Uploading...' : 'Add Images'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleAdditionalImageUpload}
+                  className="hidden"
+                />
+              </label>
+
+              {/* Images list */}
+              {additionalImages.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                  {additionalImages.map((img, index) => (
+                    <div key={index} className="relative group">
+                      <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
+                        <img
+                          src={img.url}
+                          alt={`Additional ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      
+                      {/* Controls */}
+                      <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          type="button"
+                          onClick={() => moveImage(index, 'up')}
+                          disabled={index === 0}
+                          className="p-1 bg-white rounded shadow hover:bg-gray-100 disabled:opacity-50"
+                          title="Move up"
+                        >
+                          <GripVertical className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeAdditionalImage(index)}
+                          className="p-1 bg-white rounded shadow hover:bg-red-50 text-red-600"
+                          title="Remove"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      
+                      <div className="text-xs text-gray-500 mt-1 text-center">
+                        Image {index + 2}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
